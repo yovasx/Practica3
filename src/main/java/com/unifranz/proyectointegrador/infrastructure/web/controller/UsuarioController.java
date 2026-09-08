@@ -4,6 +4,7 @@ package com.unifranz.proyectointegrador.infrastructure.web.controller;
 import com.unifranz.proyectointegrador.application.dto.UsuarioDto;
 import com.unifranz.proyectointegrador.application.service.UsuarioService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -23,6 +24,20 @@ public class UsuarioController {
     @GetMapping
     public ResponseEntity<List<UsuarioDto>> listarUsuarios(){
         return ResponseEntity.ok(usuarioService.listar());
+    }
+
+    @PutMapping("/{id}")
+    public ResponseEntity<UsuarioDto> editarUsuario(@PathVariable Long id, @RequestBody UsuarioDto usuarioDto){
+        UsuarioDto editado = usuarioService.editar(id, usuarioDto);
+        return editado != null
+                ? ResponseEntity.ok(editado)
+                : ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+    }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> eliminarUsuario(@PathVariable Long id) {
+        usuarioService.eliminarLogico(id);
+        return ResponseEntity.noContent().build();
     }
 
 }

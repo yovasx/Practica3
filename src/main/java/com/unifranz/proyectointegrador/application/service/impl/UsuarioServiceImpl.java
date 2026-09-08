@@ -42,4 +42,16 @@ public class UsuarioServiceImpl implements UsuarioService {
         usuario.setActivo(false);
         usuarioRepository.save(usuario);
     }
+    @Override
+    public UsuarioDto editar(Long id, UsuarioDto usuarioDto){
+        return usuarioRepository.findById(id)
+                .map(usuario -> {
+                    usuario.setNombre(usuarioDto.getNombre());
+                    usuario.setEmail(usuarioDto.getEmail());
+                    Usuario editado = usuarioRepository.save(usuario);
+                    return new UsuarioDto(editado.getId(), editado.getNombre(), editado.getEmail());
+                })
+                .orElse(null);
+    }
+
 }

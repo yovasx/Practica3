@@ -8,4 +8,6 @@ public interface UsuarioService {
     UsuarioDto guardar(UsuarioDto usuarioDto);
     List<UsuarioDto> listar();
     void eliminarLogico(Long id);
+
+    UsuarioDto editar(Long id, UsuarioDto usuarioDto);
 }

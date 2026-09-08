@@ -49,4 +49,13 @@ public class UsuarioServiceImpl implements UsuarioService {
                 .orElse(null);
     }
 
+    @Override
+    public boolean eliminar(Long id){
+        if (usuarioRepository.existsById(id)){
+            usuarioRepository.deleteById(id);
+            return true;
+        }
+        return false;
+    }
+
 }

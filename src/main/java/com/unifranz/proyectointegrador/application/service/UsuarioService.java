@@ -5,6 +5,7 @@ import com.unifranz.proyectointegrador.application.dto.UsuarioDto;
 import java.util.List;
 
 public interface UsuarioService {
-    UsuarioDto guardar (UsuarioDto usuarioDto);
+    UsuarioDto guardar(UsuarioDto usuarioDto);
     List<UsuarioDto> listar();
+    void eliminarLogico(Long id);
 }

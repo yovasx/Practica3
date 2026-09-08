@@ -34,4 +34,10 @@ public class UsuarioController {
                 : ResponseEntity.status(HttpStatus.NOT_FOUND).build();
     }
 
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> eliminarUsuario(@PathVariable Long id) {
+        usuarioService.eliminarLogico(id);
+        return ResponseEntity.noContent().build();
+    }
+
 }

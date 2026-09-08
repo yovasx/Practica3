@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CRUD Usuarios</title>
+    <style>
+        * { box-sizing: border-box; font-family: system-ui, Arial, sans-serif; }
+        body { margin: 0; background: #f4f6f9; color: #222; }
+        .container { max-width: 720px; margin: 30px auto; padding: 0 16px; }
+        h1 { color: #1a3866; }
+        .card {
+            background: #fff; border-radius: 10px; padding: 20px;
+            box-shadow: 0 2px 8px rgba(0,0,0,.08); margin-bottom: 24px;
+        }
+        .card h2 { margin-top: 0; font-size: 1.1em; color: #333; }
+        label { display: block; margin: 10px 0 4px; font-size: .9em; font-weight: 600; }
+        input {
+            width: 100%; padding: 8px 10px; border: 1px solid #ccc;
+            border-radius: 6px; font-size: 1em;
+        }
+        .row { display: flex; gap: 10px; }
+        .row > div { flex: 1; }
+        button {
+            margin-top: 12px; padding: 9px 16px; border: 0; border-radius: 6px;
+            cursor: pointer; font-size: .95em; background: #1a3866; color: #fff;
+        }
+        button.secondary { background: #6b7280; }
+        button.editar { background: #d97706; margin: 0; padding: 6px 12px; }
+        button.eliminar { background: #dc2626; margin: 0; padding: 6px 12px; }
+        button:hover { opacity: .9; }
+        table { width: 100%; border-collapse: collapse; margin-top: 8px; }
+        th, td { text-align: left; padding: 10px; border-bottom: 1px solid #eee; }
+        th { color: #555; font-size: .9em; }
+        .acciones { display: flex; gap: 6px; }
+        .vacio { color: #888; text-align: center; padding: 20px; }
+        #mensaje { display: none; padding: 10px 14px; border-radius: 6px; margin-bottom: 16px; }
+        #mensaje.ok { display: block; background: #e7f6ec; color: #1a7f37; border: 1px solid #b7e3c3; }
+        #mensaje.err { display: block; background: #fdecea; color: #c62828; border: 1px solid #f5c2c0; }
+    </style>
+</head>
+<body>
+<div class="container">
+    <h1>Gestión de Usuarios</h1>
+    <div id="mensaje"></div>
+
+    <div class="card">
+        <h2 id="tituloForm">Nuevo Usuario</h2>
+        <form id="formUsuario">
+            <input type="hidden" id="id">
+            <div class="row">
+                <div>
+                    <label for="nombre">Nombre</label>
+                    <input type="text" id="nombre" required>
+                </div>
+                <div>
+                    <label for="email">Email</label>
+                    <input type="email" id="email" required>
+                </div>
+            </div>
+            <button type="submit" id="btnForm">Guardar</button>
+            <button type="button" class="secondary" id="btnCancelar" style="display:none"
+                    onclick="cancelarEdicion()">Cancelar</button>
+        </form>
+    </div>
+
+    <div class="card">
+        <h2>Lista de Usuarios</h2>
+        <table>
+            <thead>
+            <tr><th>ID</th><th>Nombre</th><th>Email</th><th>Acciones</th></tr>
+            </thead>
+            <tbody id="tablaUsuarios"></tbody>
+        </table>
+        <p class="vacio" id="vacio" style="display:none">No hay usuarios registrados.</p>
+    </div>
+</div>
+
+<script>
+    const API = '/usuarios';
+
+    function mostrarMensaje(texto, tipo) {
+        const m = document.getElementById('mensaje');
+        m.textContent = texto;
+        m.className = tipo;
+    }
+
+    async function listarUsuarios() {
+        const res = await fetch(API);
+        const usuarios = await res.json();
+        const tbody = document.getElementById('tablaUsuarios');
+        const vacio = document.getElementById('vacio');
+        tbody.innerHTML = '';
+        vacio.style.display = usuarios.length === 0 ? 'block' : 'none';
+
+        usuarios.forEach(u => {
+            const fila = document.createElement('tr');
+            fila.innerHTML = `
+                <td>${u.id}</td>
+                <td>${u.nombre}</td>
+                <td>${u.email}</td>
+                <td>
+                    <div class="acciones">
+                        <button class="editar" onclick="prepararEdicion(${u.id}, '${u.nombre}', '${u.email}')">Editar</button>
+                        <button class="eliminar" onclick="eliminarUsuario(${u.id})">Eliminar</button>
+                    </div>
+                </td>`;
+            tbody.appendChild(fila);
+        });
+    }
+
+    document.getElementById('formUsuario').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const id = document.getElementById('id').value;
+        const datos = {
+            nombre: document.getElementById('nombre').value.trim(),
+            email: document.getElementById('email').value.trim()
+        };
+
+        const metodo = id ? 'PUT' : 'POST';
+        const url = id ? `${API}/${id}` : API;
+        const res = await fetch(url, {
+            method: metodo,
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(datos)
+        });
+
+        if (res.ok) {
+            mostrarMensaje(id ? 'Usuario editado correctamente.' : 'Usuario creado correctamente.', 'ok');
+            cancelarEdicion();
+            listarUsuarios();
+        } else {
+            mostrarMensaje('No se pudo guardar el usuario.', 'err');
+        }
+    });
+
+    function prepararEdicion(id, nombre, email) {
+        document.getElementById('id').value = id;
+        document.getElementById('nombre').value = nombre;
+        document.getElementById('email').value = email;
+        document.getElementById('tituloForm').textContent = 'Editar Usuario';
+        document.getElementById('btnForm').textContent = 'Actualizar';
+        document.getElementById('btnCancelar').style.display = 'inline-block';
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    function cancelarEdicion() {
+        document.getElementById('formUsuario').reset();
+        document.getElementById('id').value = '';
+        document.getElementById('tituloForm').textContent = 'Nuevo Usuario';
+        document.getElementById('btnForm').textContent = 'Guardar';
+        document.getElementById('btnCancelar').style.display = 'none';
+    }
+
+    async function eliminarUsuario(id) {
+        if (!confirm('¿Eliminar este usuario?')) return;
+        const res = await fetch(`${API}/${id}`, { method: 'DELETE' });
+        if (res.ok) {
+            mostrarMensaje('Usuario eliminado.', 'ok');
+            listarUsuarios();
+        } else {
+            mostrarMensaje('No se pudo eliminar el usuario.', 'err');
+        }
+    }
+
+    listarUsuarios();
+</script>
+</body>
+</html>
